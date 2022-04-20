@@ -8,16 +8,34 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-function generateRandomString() {
-  return Math.random().toString(16).substring(2,8);
 
-}
-
+//Link database
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+//User database
+const users = {
+  1: {id: 1, email: "lh@lh.com", password: "123"}
+};
+//--------------------------------------------------------
+//FUNCTIONS & METHODS
+function generateRandom() {
+  return Math.random().toString(16).substring(2,8);
 
+}
+//Verifies user login input
+const verifyUser = (email, password) => {
+  const givenEmail = email;
+  const givenPass = password;
+  for (let userKey in users) {    
+    if (users[userKey].email === givenEmail && userKey[userKey.password === givenPass]) {
+      return users[userKey];
+    }
+  }
+  return undefined;
+}
+//---------------------------------------------------------
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -61,7 +79,7 @@ app.get("/urls/:shortURL", (req, res) => {
 //Generating random strings and assigning to object urlDatabase
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL; 
-  const shortURL = generateRandomString();
+  const shortURL = generateRandom();
   urlDatabase[shortURL] = longURL; 
   res.redirect(`/urls/${shortURL}`);         
 });
@@ -80,10 +98,13 @@ app.post("/urls/:shortURL/update", (req, res) => {
 
 //Pulls username field and assigns as cookie
 app.post("/login", (req, res) => {
-  const username = req.body.email;
-  res.cookie("email", username);
-  // console.log("username", req.body.username);
-  res.redirect(`/urls/`);
+  const user = verifyUser(req.body.email, req.body.password);
+  const randomID = generateRandom();
+  if (user) {
+    res.cookie('user_id', randomID)
+    res.redirect(`/urls/`);
+  }
+  return res.send('Invalid email or password');
 })
 
 //Clears cookies/username 
