@@ -29,11 +29,11 @@ const verifyUser = (email, password) => {
   const givenEmail = email;
   const givenPass = password;
   for (let userKey in users) {    
-    if (users[userKey].email === givenEmail && userKey[userKey.password === givenPass]) {
+    if (users[userKey].email === givenEmail && users[userKey].password === givenPass) {
       return users[userKey];
     }
   }
-  return undefined;
+  return false;
 }
 //---------------------------------------------------------
 app.get("/", (req, res) => {
@@ -51,9 +51,9 @@ app.get("./hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase, 
-    username: req.cookies["email"]
+    user_id: req.cookies["user_id"]
   }
-  console.log(req.cookies)
+  console.log("cookie email:", req.cookies["user_id"])
   res.render("urls_index", templateVars);
 });
 
@@ -63,7 +63,7 @@ app.get("/u/:shortURL", (req, res) => {
  });
 
 app.get("/urls/new", (req, res) => {
-  templateVars = {username: req.cookies["email"]}
+  templateVars = {user_id: req.cookies["user_id"]}
   res.render("urls_new", templateVars);
 });
 
@@ -72,10 +72,12 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["email"]
+    user_id: req.cookies["user_id"],
+    password: req.cookies["password"]
   };
   res.render("urls_show", templateVars);
 });
+
 //Generating random strings and assigning to object urlDatabase
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL; 
@@ -98,18 +100,21 @@ app.post("/urls/:shortURL/update", (req, res) => {
 
 //Pulls username field and assigns as cookie
 app.post("/login", (req, res) => {
+  // console.log("email:", req.body.email)
+  // console.log("password:", req.body.password)
   const user = verifyUser(req.body.email, req.body.password);
   const randomID = generateRandom();
+  // console.log(user)
   if (user) {
-    res.cookie('user_id', randomID)
-    res.redirect(`/urls/`);
+    res.cookie('user_id', user.id)
+    res.redirect('/urls/');
   }
   return res.send('Invalid email or password');
 })
 
 //Clears cookies/username 
 app.post("/logout", (req, res) => {
-  res.clearCookie("email")
+  res.clearCookie("user_id")
   res.redirect(`/urls/`);
 })
 
@@ -117,10 +122,24 @@ app.get("/register", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["email"]
+    user_id: req.cookies["user_id"]
   };
   res.render("register", templateVars);
 });
+
+app.post("/register", (req, res) => {
+  const newUser= req.body.email
+  const newUserPass = req.body.password
+  const newID = generateRandom() 
+  const user = {
+    id: newID,
+    email: newUser,
+    password: newUserPass
+  }
+  users[newID] = user;
+  res.cookie('user_id', newID)
+  res.redirect('/urls')
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
