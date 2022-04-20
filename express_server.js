@@ -13,7 +13,6 @@ function generateRandomString() {
 
 }
 
-
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -34,7 +33,7 @@ app.get("./hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase, 
-    username: req.cookies["username"]
+    username: req.cookies["email"]
   }
   console.log(req.cookies)
   res.render("urls_index", templateVars);
@@ -46,7 +45,7 @@ app.get("/u/:shortURL", (req, res) => {
  });
 
 app.get("/urls/new", (req, res) => {
-  templateVars = {username: req.cookies["username"]}
+  templateVars = {username: req.cookies["email"]}
   res.render("urls_new", templateVars);
 });
 
@@ -55,7 +54,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    username: req.cookies["email"]
   };
   res.render("urls_show", templateVars);
 });
@@ -81,17 +80,26 @@ app.post("/urls/:shortURL/update", (req, res) => {
 
 //Pulls username field and assigns as cookie
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  res.cookie("username", username);
-  console.log("username", req.body.username);
+  const username = req.body.email;
+  res.cookie("email", username);
+  // console.log("username", req.body.username);
   res.redirect(`/urls/`);
 })
 
 //Clears cookies/username 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username")
+  res.clearCookie("email")
   res.redirect(`/urls/`);
 })
+
+app.get("/register", (req, res) => {
+  const templateVars = { 
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies["email"]
+  };
+  res.render("register", templateVars);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
