@@ -32,13 +32,12 @@ app.get("./hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  console.log("cookies", req.cookies);
-  // if (!req.cookies) {
-  //   const templateVars = {urls: urlDatabase, username: null};
-  // return res.render("urls_index",templateVars);
-  // }
-  const templateVars = {urls: urlDatabase, username: req.cookies["username"]};
-  res.render("urls_index",templateVars);
+  const templateVars = {
+    urls: urlDatabase, 
+    username: req.cookies["username"]
+  }
+  console.log(req.cookies)
+  res.render("urls_index", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -47,12 +46,17 @@ app.get("/u/:shortURL", (req, res) => {
  });
 
 app.get("/urls/new", (req, res) => {
+  templateVars = {username: req.cookies["username"]}
   res.render("urls_new", templateVars);
 });
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { 
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies["username"]
+  };
   res.render("urls_show", templateVars);
 });
 //Generating random strings and assigning to object urlDatabase
@@ -82,6 +86,10 @@ app.post("/login", (req, res) => {
   res.redirect(`/urls/`);
 })
 
+app.post("/logout", (req, res) => {
+  res.clearCookie("username")
+  res.redirect(`/urls/`);
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
