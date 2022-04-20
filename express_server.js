@@ -35,6 +35,18 @@ const verifyUser = (email, password) => {
   }
   return false;
 }
+
+//Checks if email is already registered, returns true if already exists
+const verifyNewEmail = (email) => {
+  const givenEmail = email;
+  for (let userKey in users) {    
+    if (users[userKey].email === givenEmail) {
+      return true;
+    }
+  }
+  return false;
+}
+
 //---------------------------------------------------------
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -50,11 +62,10 @@ app.get("./hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user_id = req.cookies["user_id"]
-  const user = users[user_id]
   // console.log("user:", email)
   const templateVars = {
     urls: urlDatabase, 
-    user: user
+    user: users[user_id]
 
   }
   // console.log("cookie email:", req.cookies["user_id"])
@@ -67,7 +78,10 @@ app.get("/u/:shortURL", (req, res) => {
  });
 
 app.get("/urls/new", (req, res) => {
-  templateVars = {user_id: req.cookies["user_id"]}
+  user_id = req.cookies["user_id"]
+  templateVars = {
+    user: users[user_id]
+  }
   res.render("urls_new", templateVars);
 });
 
@@ -116,7 +130,7 @@ app.post("/login", (req, res) => {
   return res.send('Invalid email or password');
 })
 
-//Clears cookies/username 
+//Clears cookies/username and logs out
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id")
   res.redirect(`/urls/`);
@@ -124,32 +138,31 @@ app.post("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   const user_id = req.cookies["user_id"]
-  const user = users[user_id]
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
     user_id: req.cookies["user_id"],
-    user: user
+    user: users[user_id]
   };
   res.render("register", templateVars);
 });
 
+//Checks if email is new, and creates a newID if it is
 app.post("/register", (req, res) => {
   const newUser= req.body.email
   const newUserPass = req.body.password
   const newID = generateRandom() 
-  // const user = {
-  //   id: newID,
-  //   email: newUser,
-  //   password: newUserPass
-  // }
-  // users[newID] = user;
-  users[newID] = {
-    id: newID,
-    email: newUser,
-    password: newUserPass
+  
+  if (!verifyNewEmail(newUser) && req.body.email.length !== 0){
+    users[newID] = {
+      id: newID,
+      email: newUser,
+      password: newUserPass
+    }
+  } else {
+    return res.send('Error 400')
   }
-  console.log("NEWID", users[newID])
+    
   res.cookie('user_id', newID)
   res.redirect('/urls')
 })
