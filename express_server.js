@@ -50,7 +50,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-
+//Pulls shortURL parameter, adds it as key with long URL value in database
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
@@ -79,6 +79,7 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect(`/urls/`);
 });
 
+//Pulls username field and assigns as cookie
 app.post("/login", (req, res) => {
   const username = req.body.username;
   res.cookie("username", username);
@@ -86,6 +87,7 @@ app.post("/login", (req, res) => {
   res.redirect(`/urls/`);
 })
 
+//Clears cookies/username 
 app.post("/logout", (req, res) => {
   res.clearCookie("username")
   res.redirect(`/urls/`);
