@@ -24,7 +24,7 @@ function generateRandom() {
   return Math.random().toString(16).substring(2,8);
 
 }
-//Verifies user login input
+//Verifies user login input is correct
 const verifyUser = (email, password) => {
   const givenEmail = email;
   const givenPass = password;
@@ -116,6 +116,17 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect(`/urls/`);
 });
 
+app.get("/login", (req, res) => {
+  const user_id = req.cookies["user_id"]
+  const templateVars = { 
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    user_id: req.cookies["user_id"],
+    user: users[user_id]
+  };
+  res.render("login", templateVars);
+});
+
 //Pulls username field and assigns as cookie
 app.post("/login", (req, res) => {
   // console.log("email:", req.body.email)
@@ -133,7 +144,7 @@ app.post("/login", (req, res) => {
 //Clears cookies/username and logs out
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id")
-  res.redirect(`/urls/`);
+  res.redirect('/urls/');
 })
 
 app.get("/register", (req, res) => {
