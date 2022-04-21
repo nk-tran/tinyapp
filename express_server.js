@@ -13,11 +13,11 @@ app.set("view engine", "ejs");
 const urlDatabase = {
   b6UTxQ: {
         longURL: "https://www.tsn.ca",
-        userID: "2"
-    },
-  i3BoGr: {
-        longURL: "https://www.google.ca",
         userID: "1"
+    },
+  sgq3y6: {
+        longURL: "https://www.google.ca",
+        userID: "2"
     }
 };
 //User database
@@ -61,6 +61,15 @@ const urlsForUser = (id) => {
     }
   } return userList;
 }
+
+const shortUrlBelongsToUser = (id, shortURL) => {
+  for (let item in urlDatabase) {
+    if ((urlDatabase[shortURL].userID === id) && (item === shortURL)) { 
+      return true  
+    }
+  } 
+  return false
+};
 
 //---------------------------------------------------------
 app.get("/", (req, res) => {
@@ -134,16 +143,24 @@ app.get("/urls/:shortURL", (req, res) => {
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  
-  delete urlDatabase[req.params.shortURL]
-  res.redirect(`/urls`);
+  const shortURL = req.params.shortURL
+  if(shortUrlBelongsToUser(req.cookies['user_id'], shortURL)) {
+    delete urlDatabase[req.params.shortURL]
+    res.redirect(`/urls`);
+  } else {
+    return res.send('You can only delete your own generated links!')
+  }
 });
 
 //Reassigning newLongURL to existing shortURL - Edit
 app.post("/urls/:shortURL/update", (req, res) => {
   const shortURL = req.params.shortURL
-  urlDatabase[shortURL] = req.body.longURL
-  res.redirect(`/urls/`);
+  if(shortUrlBelongsToUser(req.cookies['user_id'], shortURL)) {
+    urlDatabase[shortURL] = req.body.longURL
+    res.redirect(`/urls/`);
+  } else {
+    return res.send('You can only edit your own generated links!')
+  }
 });
 
 app.get("/login", (req, res) => {
