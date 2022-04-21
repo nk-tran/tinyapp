@@ -53,6 +53,15 @@ const verifyNewEmail = (email) => {
   return false;
 }
 
+const urlsForUser = (id) => {
+  const userList = {}
+  for (let [keyUser, value] of Object.entries(urlDatabase)) {
+    if (value.userID === id) {
+      userList[keyUser] = value
+    }
+  } return userList;
+}
+
 //---------------------------------------------------------
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -69,13 +78,26 @@ app.get("./hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const user_id = req.cookies["user_id"]
   // console.log("user:", urlDatabase[req.params.shortURL])
+  
   const templateVars = {
-    urls: urlDatabase, 
+    urls: urlsForUser(user_id), 
     user: users[user_id]
 
   }
   // console.log("cookie email:", req.cookies["user_id"])
   res.render("urls_index", templateVars);
+});
+
+//Generating random strings and assigning to object urlDatabase
+app.post("/urls", (req, res) => {
+  const longURL = req.body.longURL; 
+  const shortURL = generateRandom();
+  userID = req.cookies['user_id']
+  urlDatabase[shortURL] = { longURL, userID }; 
+
+  console.log("CHECK SHORTURL:", urlDatabase[shortURL])
+  console.log("CHECK LONG URL:", longURL)
+  res.redirect(`/urls/${shortURL}`);         
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -109,19 +131,10 @@ app.get("/urls/:shortURL", (req, res) => {
   // console.log("LONGURL:", urlDatabase[req.params.shortURL])
 });
 
-//Generating random strings and assigning to object urlDatabase
-app.post("/urls", (req, res) => {
-  const longURL = req.body.longURL; 
-  const shortURL = generateRandom();
-  userID = req.cookies['user_id']
-  urlDatabase[shortURL] = { longURL, userID }; 
 
-  console.log("CHECK SHORTURL:", urlDatabase[shortURL])
-  console.log("CHECK LONG URL:", longURL)
-  res.redirect(`/urls/${shortURL}`);         
-});
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  
   delete urlDatabase[req.params.shortURL]
   res.redirect(`/urls`);
 });
@@ -149,7 +162,6 @@ app.post("/login", (req, res) => {
   // console.log("email:", req.body.email)
   // console.log("password:", req.body.password)
   const user = verifyUser(req.body.email, req.body.password);
-  const randomID = generateRandom();
   // console.log(user)
   if (user) {
     res.cookie('user_id', user.id)
