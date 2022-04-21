@@ -11,8 +11,14 @@ app.set("view engine", "ejs");
 
 //Link database
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+        longURL: "https://www.tsn.ca",
+        userID: "2"
+    },
+  i3BoGr: {
+        longURL: "https://www.google.ca",
+        userID: "1"
+    }
 };
 //User database
 const users = {
@@ -62,7 +68,7 @@ app.get("./hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user_id = req.cookies["user_id"]
-  // console.log("user:", email)
+  // console.log("user:", urlDatabase[req.params.shortURL])
   const templateVars = {
     urls: urlDatabase, 
     user: users[user_id]
@@ -73,8 +79,8 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL] 
-   res.redirect(longURL);
+  const longURL =  urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
  });
 
 app.get("/urls/new", (req, res) => {
@@ -87,20 +93,31 @@ app.get("/urls/new", (req, res) => {
 
 //Pulls shortURL parameter, adds it as key with long URL value in database
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { 
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
-    user_id: req.cookies["user_id"],
-    password: req.cookies["password"]
-  };
-  res.render("urls_show", templateVars);
+  const user_id = req.cookies["user_id"]
+  if (urlDatabase[req.params.shortURL]) {
+    const templateVars = { 
+      shortURL: req.params.shortURL, 
+      longURL: urlDatabase[req.params.shortURL],
+      user_id: req.cookies["user_id"],
+      user: users[user_id]
+    }
+    // console.log("CHECK:", urlDatabase[req.params.shortURL])
+    res.render("urls_show", templateVars);
+  } else {
+    res.send('Error 404')
+  }
+  // console.log("LONGURL:", urlDatabase[req.params.shortURL])
 });
 
 //Generating random strings and assigning to object urlDatabase
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL; 
   const shortURL = generateRandom();
-  urlDatabase[shortURL] = longURL; 
+  userID = req.cookies['user_id']
+  urlDatabase[shortURL] = { longURL, userID }; 
+
+  console.log("CHECK SHORTURL:", urlDatabase[shortURL])
+  console.log("CHECK LONG URL:", longURL)
   res.redirect(`/urls/${shortURL}`);         
 });
 
