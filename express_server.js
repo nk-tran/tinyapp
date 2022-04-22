@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
 const bcrypt = require('bcryptjs');
 var cookieSession = require('cookie-session')
-
+const helpers = require('./helpers')
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -41,25 +41,26 @@ function generateRandom() {
 
 }
 //Verifies user login input is correct
-const verifyUser = (email, password) => {
-  const givenEmail = email;
-  const givenPass = password;
-  for (let userKey in users) {    
-    if (users[userKey].email) {
-      return users[userKey];
-    }
-  }
-  return false;
-}
+// const verifyUser = (email, password) => {
+//   const givenEmail = email;
+//   const givenPass = password;
+//   for (let userKey in users) {    
+//     if (users[userKey].email) {
+//       return users[userKey];
+//     }
+//   }
+//   return false;
+// }
 
-const getUser = (email, userObj) => {
-  for (let userKey in userObj) {    
-    if (userObj[userKey].email === email) {
-      return userObj[userKey];
-    }
-  }
-  return undefined;
-}
+//gets user by email 
+// const getUserByEmail  = (email, userObj) => {
+//   for (let userKey in userObj) {    
+//     if (userObj[userKey].email === email) {
+//       return userObj[userKey];
+//     }
+//   }
+//   return undefined;
+// }
 
 //Checks if email is already registered, returns true if already exists
 const verifyNewEmail = (email) => {
@@ -197,7 +198,7 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   // console.log("email:", req.body.email)
   // console.log("password:", req.body.password)
-  const user = getUser(req.body.email, users);
+  const user = helpers(req.body.email, users);
   // console.log("USER:", user)
   if (user && bcrypt.compareSync(req.body.password, user.password)) {
     req.session.user_id = user.id
