@@ -9,4 +9,4 @@ const getUserByEmail  = (email, userObj) => {
   return undefined;
 }
 
-module.exports = getUserByEmail 
+module.exports = { getUserByEmail }

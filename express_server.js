@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
 const bcrypt = require('bcryptjs');
 var cookieSession = require('cookie-session')
-const helpers = require('./helpers')
+const { getUserByEmail } = require('./helpers')
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -198,7 +198,7 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   // console.log("email:", req.body.email)
   // console.log("password:", req.body.password)
-  const user = helpers(req.body.email, users);
+  const user = getUserByEmail(req.body.email, users);
   // console.log("USER:", user)
   if (user && bcrypt.compareSync(req.body.password, user.password)) {
     req.session.user_id = user.id
