@@ -65,7 +65,7 @@ const urlsForUser = (id) => {
 // Check if user is logged in matches the shortURL
 const shortUrlBelongsToUser = (id, shortURL) => {
   for (let item in urlDatabase) {
-    if ((urlDatabase.shortURL.userID === id) && (item === shortURL)) { 
+    if ((urlDatabase[item].userID === id) && (item === shortURL)) { 
       return true;
     }
   }
@@ -153,7 +153,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:shortURL/update", (req, res) => {
   const shortURL = req.params.shortURL;
   if(shortUrlBelongsToUser(req.session['user_id'], shortURL)) {
-    urlDatabase[shortURL] = req.body.longURL
+    urlDatabase[shortURL] = {
+      longURL: req.body.longURL,
+      userID: req.session['user_id']
+    }
     res.redirect('/urls');
   } else {
     return res.send('You can only edit your own generated links!');
@@ -161,7 +164,6 @@ app.post("/urls/:shortURL/update", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
- 
   const templateVars = { 
     user: req.session["user_id"]
   };
@@ -214,7 +216,7 @@ app.post("/register", (req, res) => {
     
   req.session.user_id = newID;
   res.redirect('/urls');
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
