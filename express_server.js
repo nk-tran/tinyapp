@@ -40,27 +40,7 @@ function generateRandom() {
   return Math.random().toString(16).substring(2,8);
 
 }
-//Verifies user login input is correct
-// const verifyUser = (email, password) => {
-//   const givenEmail = email;
-//   const givenPass = password;
-//   for (let userKey in users) {    
-//     if (users[userKey].email) {
-//       return users[userKey];
-//     }
-//   }
-//   return false;
-// }
 
-//gets user by email 
-// const getUserByEmail  = (email, userObj) => {
-//   for (let userKey in userObj) {    
-//     if (userObj[userKey].email === email) {
-//       return userObj[userKey];
-//     }
-//   }
-//   return undefined;
-// }
 
 //Checks if email is already registered, returns true if already exists
 const verifyNewEmail = (email) => {
@@ -126,40 +106,45 @@ app.post("/urls", (req, res) => {
   userID = req.session['user_id']
   urlDatabase[shortURL] = { longURL, userID }; 
 
-  console.log("CHECK SHORTURL:", urlDatabase[shortURL])
-  console.log("CHECK LONG URL:", longURL)
+  // console.log("CHECK SHORTURL:", urlDatabase[shortURL])
+  // console.log("CHECK LONG URL:", longURL)
   res.redirect(`/urls/${shortURL}`);         
 });
 
+//redirects to actual longURL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL =  urlDatabase[req.params.shortURL];
+  const longURL =  urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
  });
 
+ //Creates new shortURLs, must be logged in
 app.get("/urls/new", (req, res) => {
-  user_id = req.session["user_id"]
-  templateVars = {
+  if (req.session["user_id"]) {
+    user_id = req.session["user_id"]
+    templateVars = {
     user: users[user_id]
-  }
+    }
   res.render("urls_new", templateVars);
+  } else {
+    res.send('Please login first to create new URLs!')
+  }
 });
 
 //Pulls shortURL parameter, adds it as key with long URL value in database
 app.get("/urls/:shortURL", (req, res) => {
   const user_id = req.session["user_id"]
   if (urlDatabase[req.params.shortURL]) {
-    const templateVars = { 
+    const templateVars = {
       shortURL: req.params.shortURL, 
-      longURL: urlDatabase[req.params.shortURL],
+      longURL: urlDatabase[req.params.shortURL].longURL,
       user_id: req.session["user_id"],
       user: users[user_id]
     }
-    // console.log("CHECK:", urlDatabase[req.params.shortURL])
+    console.log("CHECK:", req.params.shortURL)
     res.render("urls_show", templateVars);
   } else {
-    res.send('Error 404')
+    res.send('Error 404');
   }
-  // console.log("LONGURL:", urlDatabase[req.params.shortURL])
 });
 
 
