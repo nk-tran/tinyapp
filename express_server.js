@@ -74,7 +74,7 @@ const shortUrlBelongsToUser = (id, shortURL) => {
 
 //---------------------------------------------------------
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -125,18 +125,21 @@ app.get("/urls/new", (req, res) => {
 
 //Pulls shortURL parameter, adds it as key with long URL value in database
 app.get("/urls/:shortURL", (req, res) => {
-  const user_id = req.session["user_id"]
-  if (urlDatabase[req.params.shortURL]) {
-    const templateVars = {
-      shortURL: req.params.shortURL, 
-      longURL: urlDatabase[req.params.shortURL].longURL,
-      user_id: req.session["user_id"],
-      user: users[user_id]
-    }
+  const user_id = req.session["user_id"];
+  const shortURL = req.params.shortURL;
+  if(shortUrlBelongsToUser(req.session['user_id'], shortURL)) {
+    if (urlDatabase[req.params.shortURL]) {
+      const templateVars = {
+        shortURL: req.params.shortURL, 
+        longURL: urlDatabase[req.params.shortURL].longURL,
+        user_id: req.session["user_id"],
+        user: users[user_id]
+      }
     res.render("urls_show", templateVars);
-  } else {
-    res.send('Error 404');
-  }
+    } else {
+      res.send('Error 404');
+    }
+  }res.send('Not logged in!');
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
