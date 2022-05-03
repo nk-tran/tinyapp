@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
 const bcrypt = require('bcryptjs');
 var cookieSession = require('cookie-session')
-const { getUserByEmail, verifyNewEmail, urlsForUser, shortUrlBelongsToUser } = require('./helpers')
+const { getUserByEmail, verifyNewEmail, urlsForUser, shortUrlBelongsToUser, generateRandom } = require('./helpers')
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -34,43 +34,6 @@ const urlDatabase = {
 const users = {
   1: {id: 1, email: "lh@lh.com", password: "123"}
 };
-//--------------------------------------------------------
-
-//FUNCTIONS & METHODS
-function generateRandom() {
-  return Math.random().toString(16).substring(2,8);
-};
-
-//Checks if email is already registered, returns true if already exists
-// const verifyNewEmail = (email) => {
-//   const givenEmail = email;
-//   for (let userKey in users) {    
-//     if (users[userKey].email === givenEmail) {
-//       return true;
-//     }
-//   }
-//   return false;
-// };
-
-// Check if user id matches logged in id and returns their own links
-// const urlsForUser = (id) => {
-//   const userList = {}
-//   for (let [keyUser, value] of Object.entries(urlDatabase)) {
-//     if (value.userID === id) {
-//       userList[keyUser] = value
-//     }
-//   } return userList;
-// };
-
-// Check if user is logged in matches the shortURL
-// const shortUrlBelongsToUser = (id, shortURL) => {
-//   for (let item in urlDatabase) {
-//     if ((urlDatabase[item].userID === id) && (item === shortURL)) { 
-//       return true;
-//     }
-//   }
-//   return false;
-// };
 
 //---------------------------------------------------------
 app.get("/", (req, res) => {
@@ -79,10 +42,6 @@ app.get("/", (req, res) => {
 
 app.get("/urls.json", (req, res) => {
   res.send(urlDatabase);
-});
-
-app.get("./hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.get("/urls", (req, res) => {
@@ -127,7 +86,8 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const user_id = req.session["user_id"];
   const shortURL = req.params.shortURL;
-  if(shortUrlBelongsToUser(req.session['user_id'], shortURL), urlDatabase) {
+
+  if(shortUrlBelongsToUser(req.session['user_id'], shortURL, urlDatabase)) {
     if (urlDatabase[req.params.shortURL]) {
       const templateVars = {
         shortURL: req.params.shortURL, 
@@ -137,14 +97,16 @@ app.get("/urls/:shortURL", (req, res) => {
       }
     res.render("urls_show", templateVars);
     } else {
-      res.send('Error 404');
+      return res.send('Error 404');
     }
-    }res.send('Not logged in!');
+  } else {
+    return res.send('Not logged in!');
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
-  if(shortUrlBelongsToUser(req.session['user_id'], shortURL), urlDatabase) {
+  if(shortUrlBelongsToUser(req.session['user_id'], shortURL, urlDatabase)) {
     delete urlDatabase[req.params.shortURL]
     res.redirect(`/urls`);
   } else {
@@ -155,7 +117,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //Reassigning newLongURL to existing shortURL - Edit
 app.post("/urls/:shortURL/update", (req, res) => {
   const shortURL = req.params.shortURL;
-  if(shortUrlBelongsToUser(req.session['user_id'], shortURL), urlDatabase) {
+  if(shortUrlBelongsToUser(req.session['user_id'], shortURL, urlDatabase)) {
     urlDatabase[shortURL] = {
       longURL: req.body.longURL,
       userID: req.session['user_id']
