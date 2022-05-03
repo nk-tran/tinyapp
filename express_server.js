@@ -141,7 +141,7 @@ app.post("/login", (req, res) => {
 
   if (user && bcrypt.compareSync(req.body.password, user.password)) {
     req.session.user_id = user.id;
-    res.redirect('/urls');
+    return res.redirect('/urls');
   };
   return res.send('Invalid email or password');
 });
